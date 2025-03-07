@@ -125,30 +125,30 @@ spec:
             timeoutSeconds: {{ .Values.statefulset.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.statefulset.readinessProbe.failureThreshold }}
           env:
-          {{- if (.Values.secret.existingDbSecret.enabled) }}
+          {{- if (not .Values.secret.existingDbSecret.enabled) }}
             - name: DB_NAME
               value: "{{ .Values.statefulset.container.env.nexusDBName }}"
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.database.providerSecretName }} # {{ template "nexus.name" . }}-dbsecret
-                  key: {{ .Values.secrets.database.dbPasswordKey }}
+                  name: {{ template "nexus.name" . }}-dbsecret
+                  key: db-password
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.database.providerSecretName }} # {{ template "nexus.name" . }}-dbsecret
-                  key: {{ .Values.secrets.database.dbUserKey }}
+                  name: {{ template "nexus.name" . }}-dbsecret
+                  key: db-user
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.database.providerSecretName }} # {{ template "nexus.name" . }}-dbsecret
-                  key: {{ .Values.secrets.database.dbHostKey }}
+                  name: {{ template "nexus.name" . }}-dbsecret
+                  key: db-host
           {{ end }}
             - name: NEXUS_SECURITY_INITIAL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.admin.providerSecretName }}
-                  key: {{ .Values.secrets.admin.adminPasswordKey }}
+                  name: {{ template "nexus.name" . }}-adminsecret
+                  key: nexus-admin-password
             - name: NEXUS_SECURITY_RANDOMPASSWORD
               value: "false"
             - name: NEXUS_ZERO_DOWNTIME_ENABLED
@@ -166,7 +166,7 @@ spec:
           {{- if or .Values.aws.secretmanager.enabled .Values.azure.keyvault.enabled  }}
               value: /nxrm-secrets/{{ .Values.secret.license.name }}
           {{ else }}
-              value: {{ .Values.secret.license.licenseSecret.mountPath }}/{{ .Values.secret.license.filename }}
+              value: {{ .Values.secret.license.licenseSecret.mountPath }}/{{ .Values.secret.license.name }}
           {{ end }}
             - name: INSTALL4J_ADD_VM_PARAMS
           {{- if .Values.statefulset.clustered }}
